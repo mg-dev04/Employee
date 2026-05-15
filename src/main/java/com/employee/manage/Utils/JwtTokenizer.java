@@ -11,23 +11,30 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Value;
+
 @Component
 public class JwtTokenizer {
-    private final String SECRET = "mangoCitySalemKPT636010mangoCitySalemKPT636010mangoCitySalemKPT636010";
+    @Value("${JWT_SECRET:mangoCitySalemKPT636010mangoCitySalemKPT636010mangoCitySalemKPT636010}")
+    private String SECRET;
+
     private final long EXPIRE = 1000 * 60 *60;
-    private final Key SecretKey = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+
+    private Key getSecretKey() {
+        return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    }
 
     public String Tokenizer(String email){
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRE))
-                .signWith(SecretKey , SignatureAlgorithm.HS256)
+                .signWith(getSecretKey() , SignatureAlgorithm.HS256)
                 .compact();
     }
     public String emailGetter( String Token){
         return Jwts.parser()
-                .setSigningKey(SecretKey)
+                .setSigningKey(getSecretKey())
                 .build()
                 .parseSignedClaims(Token)
                 .getPayload()
@@ -36,7 +43,7 @@ public class JwtTokenizer {
     public Boolean Validater(String Token){
         try{
             Jwts.parser()
-                    .setSigningKey(SecretKey)
+                    .setSigningKey(getSecretKey())
                     .build()
                     .parseSignedClaims(Token);
             return  true;
